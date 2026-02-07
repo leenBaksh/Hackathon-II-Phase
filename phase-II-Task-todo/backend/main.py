@@ -52,14 +52,16 @@ app.include_router(tasks_router, prefix="/api")
 
 @app.get("/health")
 async def health_check():
-    """
-    Health check endpoint.
-
-    Returns basic health status.
-    """
     return {
         "status": "ok",
         "database": "connected"
+    }
+
+@app.get("/api/health")
+async def api_health_check():
+    return {
+        "status": "ok",
+        "api": "connected"
     }
 
 
