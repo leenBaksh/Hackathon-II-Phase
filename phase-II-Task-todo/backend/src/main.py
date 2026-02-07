@@ -19,7 +19,7 @@ app.add_middleware(
 app.add_middleware(JWTReadyMiddleware)
 
 app.include_router(tasks_router, prefix="/api")
-app.include_router(auth_router)
+app.include_router(auth_router, prefix="/api")
 
 @app.on_event("startup")
 def on_startup():
