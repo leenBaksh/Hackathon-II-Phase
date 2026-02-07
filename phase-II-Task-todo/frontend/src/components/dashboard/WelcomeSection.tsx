@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { Task } from '@/types/api-types';
 
@@ -77,7 +77,7 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ tasks, className = '' }
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
@@ -89,7 +89,7 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ tasks, className = '' }
     },
   };
 
-  const progressVariants = {
+  const progressVariants: Variants = {
     hidden: { pathLength: 0, opacity: 0 },
     visible: {
       pathLength: completionRate / 100,

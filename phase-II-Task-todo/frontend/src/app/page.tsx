@@ -1,12 +1,12 @@
 'use client';
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/animations";
 import AnimatedParticles from "@/components/AnimatedParticles";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import SmoothScroll from "@/components/ui/SmoothScroll";
-import Footer from "@/components/layout/Footer";
+
 import { SkeletonCard, SkeletonStats, SkeletonWelcome } from "@/components/ui/Skeleton";
 import DynamicLogo from "@/components/DynamicLogo";
 
@@ -22,7 +22,7 @@ export default function Home() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -513,8 +513,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <Footer />
-    </main>
+      </main>
   );
 }

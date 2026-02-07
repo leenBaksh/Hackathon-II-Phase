@@ -66,8 +66,7 @@ export default function TrustBadge({
             rotate: [0, 360, 0],
           }}
           transition={{ duration: 1, repeat: variant === 'pulse' ? 2 : 0, ease: 'easeInOut' }}
-        />
-          >
+        >
           {config.icon}
         </motion.div>
         <div className="relative">

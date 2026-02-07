@@ -2,7 +2,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { useSpring } from '@react-spring/web';
 import { AnimatedSection } from '@/components/animations';
 
 interface StatsCounterProps {
@@ -31,22 +32,25 @@ export default function StatsCounter({
   const [hasAnimated, setHasAnimated] = useState(false);
 
   // Spring animation for smooth counting
-  const counterSpring = useSpring({
-    from: startValue,
-    to: endValue,
-    config: {
-      duration: duration,
-    tension: 80,
-      friction: 30,
-    precision: 0.1,
-    clamp: true,
-      mass: 0.1,
-      velocity: 5
-    },
-  });
+  const [counterSpring] = useSpring(
+    () => ({
+      from: { value: startValue },
+      to: { value: endValue },
+      config: {
+        duration: duration,
+        tension: 80,
+        friction: 30,
+        precision: 0.1,
+        clamp: true,
+        mass: 0.1,
+        velocity: 5
+      },
+    }),
+    [startValue, endValue, duration]
+  );
 
   useEffect(() => {
-    setDisplayValue(counterSpring.value);
+    setDisplayValue(counterSpring.value.get());
   }, [counterSpring]);
 
   useEffect(() => {
@@ -59,6 +63,9 @@ export default function StatsCounter({
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const sizeClasses = {
     sm: 'text-3xl',
@@ -98,16 +105,17 @@ export default function StatsCounter({
               className={`absolute inset-0 ${color} opacity-20 blur-3xl rounded-full`}
               animate={{
                 opacity: hasAnimated ? [0, 0.3, 0] : [0.2, 0, 0.2],
-              scale: hasAnimated ? [1.1, 0.9] : [1, 0.9],
-              duration: 1,
+                scale: hasAnimated ? [1.1, 0.9] : [1, 0.9],
+              }}
+              transition={{
+                duration: 1,
                 repeat: hasAnimated ? 0 : 1,
-              },
-            }}
+              }}
             />
+            <span className="relative z-10">
+              {prefix}{Math.floor(displayValue)}{suffix}
+            </span>
           </div>
-          <span className="relative z-10">
-            {prefix}{Math.floor(displayValue)}{suffix}
-          </span>
         </div>
         
         {/* Animated particles */}
@@ -142,7 +150,7 @@ export default function StatsCounter({
             ))}
           </div>
         )}
-      </div>
+      </motion.div>
       
       {label && (
         <motion.p
@@ -154,6 +162,6 @@ export default function StatsCounter({
           {label}
         </motion.p>
       )}
-    </motion.div>
+    </AnimatedSection>
   );
 }

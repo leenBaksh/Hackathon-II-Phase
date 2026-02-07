@@ -3,7 +3,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { Task } from '@/types/api-types';
 import { TaskCategory, TaskLabel } from '@/types/task-categories';
 import { CategoryBadge, LabelBadge } from './CategoryBadges';
@@ -103,7 +103,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const dueDateInfo = formatDueDate(task.dueDate);
   
   // Animation variants
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: 30,

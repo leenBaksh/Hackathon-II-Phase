@@ -80,7 +80,6 @@ export default function Footer() {
               <ModernLogo 
                 size="lg" 
                 showText={true} 
-                forceAura={autoState}
                 className="mb-4"
               />
             </div>
