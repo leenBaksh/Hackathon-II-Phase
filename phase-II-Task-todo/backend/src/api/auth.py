@@ -14,6 +14,10 @@ from ..schemas import Token, UserLogin, UserRegister
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+@router.get("/health")
+async def auth_health():
+    return {"status": "ok", "service": "auth"}
+
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def register_user(user_register: UserRegister, session: Session = DBSession):
     existing_user = session.exec(select(User).where(User.email == user_register.email)).first()

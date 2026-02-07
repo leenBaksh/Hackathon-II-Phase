@@ -30,8 +30,8 @@ export default function Footer() {
     resources: [
       { name: "Documentation", href: "#" },
       { name: "Help Center", href: "#" },
-      { name: "Community", href: "#" },
-      { name: "API", href: "#" },
+      { name: "Community", href: "https://discord.com/channels/@jenny2915" },
+      { name: "API", href: "/docs" },
     ],
     legal: [
       { name: "Privacy", href: "#" },

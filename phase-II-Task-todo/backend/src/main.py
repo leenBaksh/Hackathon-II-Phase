@@ -19,7 +19,7 @@ app.add_middleware(
 app.add_middleware(JWTReadyMiddleware)
 
 app.include_router(tasks_router, prefix="/api")
-app.include_router(auth_router, prefix="/api")
+app.include_router(auth_router)
 
 @app.on_event("startup")
 def on_startup():
@@ -35,3 +35,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.get("/")
 async def root():
     return {"message": "FastAPI application initialized."}
+
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "ok",
+        "database": "connected"
+    }
