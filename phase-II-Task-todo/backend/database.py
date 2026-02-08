@@ -42,6 +42,8 @@ engine = create_engine(
     max_overflow=20,   # Maximum overflow connections
 )
 
+from sqlalchemy.exc import SQLAlchemyError
+
 # Thread-local storage for sessions
 _thread_local = threading.local()
 
@@ -75,7 +77,7 @@ def get_session() -> Generator[Session, None, None]:
             with Session(engine) as session:
                 yield session
                 break  # Success, exit retry loop
-        except Exception as e:
+        except SQLAlchemyError as e:
             if "database is locked" in str(e).lower() and attempt < max_retries - 1:
                 print(f"Database locked, retrying in {retry_delay}s (attempt {attempt + 1}/{max_retries})")
                 time.sleep(retry_delay)
