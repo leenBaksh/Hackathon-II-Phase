@@ -1,0 +1,442 @@
+openapi: 3.0.0
+info:
+  title: FastAPI Task Management API with JWT Auth
+  version: 1.0.0
+  description: API for managing user tasks, integrated with SQLModel and secured with JWT authentication.
+servers:
+  - url: /
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      operationId: register_user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          description: User registered successfully, returns access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Conflict, e.g., email already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/login:
+    post:
+      summary: Authenticate user and get JWT token
+      operationId: login_for_access_token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: User authenticated, returns access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tasks:
+    get:
+      summary: Get all tasks for the authenticated user
+      operationId: get_all_tasks_authenticated
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A list of tasks for the authenticated user.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create a new task for the authenticated user
+      operationId: create_task_authenticated
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: The newly created task.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tasks/{task_id}:
+    get:
+      summary: Get a single task by ID for the authenticated user
+      operationId: get_task_by_id_authenticated
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the task to retrieve.
+      responses:
+        '200':
+          description: The task details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - task does not belong to user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: Update an existing task for the authenticated user
+      operationId: update_task_authenticated
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the task to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: The updated task.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - task does not belong to user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a task for the authenticated user
+      operationId: delete_task_authenticated
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the task to delete.
+      responses:
+        '204':
+          description: Task deleted successfully. No content.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - task does not belong to user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tasks/{task_id}/complete:
+    patch:
+      summary: Mark a task as complete for the authenticated user
+      operationId: complete_task_authenticated
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the task to mark as complete.
+      responses:
+        '200':
+          description: The updated (completed) task.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - task does not belong to user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserRegister:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 8
+          example: "securepassword123"
+      required:
+        - email
+        - password
+
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 8
+          example: "securepassword123"
+      required:
+        - email
+        - password
+    
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        token_type:
+          type: string
+          example: "bearer"
+      required:
+        - access_token
+        - token_type
+
+    TaskBase:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          example: "Buy groceries"
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: "Milk, eggs, bread, and fruits"
+        completed:
+          type: boolean
+          default: false
+          example: false
+      required:
+        - title
+
+    TaskCreate:
+      allOf:
+        - $ref: '#/components/schemas/TaskBase'
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          example: "Buy organic groceries"
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: "Organic milk, eggs, bread, and fruits"
+        completed:
+          type: boolean
+          example: true
+
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "d290f1ee-6c54-4b01-90e6-d701748f0851"
+        user_id:
+          type: string
+          format: uuid
+          example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+        title:
+          type: string
+          maxLength: 255
+          example: "Buy groceries"
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: "Milk, eggs, bread, and fruits"
+        completed:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:00:00Z"
+      required:
+        - id
+        - user_id
+        - title
+        - completed
+        - created_at
+        - updated_at
+
+  responses:
+    NotFound:
+      description: The specified resource was not found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Task not found"
+    BadRequest:
+      description: Invalid request parameters or body.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Invalid input"
+    UnprocessableEntity:
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    loc:
+                      type: array
+                      items:
+                        type: string
+                    msg:
+                      type: string
+                    type:
+                      type: string
+    Unauthorized:
+      description: Authentication failed (e.g., missing, invalid, or expired token).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthError'
+    AuthError:
+      type: object
+      properties:
+        detail:
+          type: string
+          example: "Could not validate credentials"
+    InternalServerError:
+      description: An unexpected server error occurred.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Internal server error"
+```

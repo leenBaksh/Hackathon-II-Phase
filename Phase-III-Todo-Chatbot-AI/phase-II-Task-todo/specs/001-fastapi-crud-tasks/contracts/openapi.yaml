@@ -1,0 +1,336 @@
+openapi: 3.0.0
+info:
+  title: FastAPI Task Management API
+  version: 1.0.0
+  description: API for managing user tasks, integrated with SQLModel.
+servers:
+  - url: /api/{user_id}
+    variables:
+      user_id:
+        default: "example_user_id"
+        description: The ID of the user.
+
+paths:
+  /tasks:
+    get:
+      summary: Get all tasks for a user
+      operationId: get_all_tasks
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid # Assuming UUID for user_id based on typical practice
+          description: The ID of the user to retrieve tasks for.
+      responses:
+        '200':
+          description: A list of tasks for the specified user.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create a new task for a user
+      operationId: create_task
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user to create the task for.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: The newly created task.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tasks/{task_id}:
+    get:
+      summary: Get a single task by ID for a user
+      operationId: get_task_by_id
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user.
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid # Assuming UUID for task_id
+          description: The ID of the task to retrieve.
+      responses:
+        '200':
+          description: The task details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: Update an existing task for a user
+      operationId: update_task
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user.
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the task to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: The updated task.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a task for a user
+      operationId: delete_task
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user.
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the task to delete.
+      responses:
+        '204':
+          description: Task deleted successfully. No content.
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tasks/{task_id}/complete:
+    patch:
+      summary: Mark a task as complete for a user
+      operationId: complete_task
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user.
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the task to mark as complete.
+      responses:
+        '200':
+          description: The updated (completed) task.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    TaskBase:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          example: "Buy groceries"
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: "Milk, eggs, bread, and fruits"
+        completed:
+          type: boolean
+          default: false
+          example: false
+      required:
+        - title
+
+    TaskCreate:
+      allOf:
+        - $ref: '#/components/schemas/TaskBase'
+      # user_id is from path, not in request body for creation
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          example: "Buy organic groceries"
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: "Organic milk, eggs, bread, and fruits"
+        completed:
+          type: boolean
+          example: true
+      # All fields optional for update
+
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "d290f1ee-6c54-4b01-90e6-d701748f0851"
+        user_id:
+          type: string
+          format: uuid
+          example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+        title:
+          type: string
+          maxLength: 255
+          example: "Buy groceries"
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: "Milk, eggs, bread, and fruits"
+        completed:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:00:00Z"
+      required:
+        - id
+        - user_id
+        - title
+        - completed
+        - created_at
+        - updated_at
+
+  responses:
+    NotFound:
+      description: The specified resource was not found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Task not found"
+    BadRequest:
+      description: Invalid request parameters or body.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Invalid user ID format"
+    UnprocessableEntity: # For Pydantic validation errors
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    loc:
+                      type: array
+                      items:
+                        type: string
+                    msg:
+                      type: string
+                    type:
+                      type: string
+    InternalServerError:
+      description: An unexpected server error occurred.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Internal server error"
