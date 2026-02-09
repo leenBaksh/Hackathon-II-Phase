@@ -71,7 +71,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative bg-slate-900/50 backdrop-blur-sm border-white/10 border-t">
+    <footer className="relative bg-slate-900/50 backdrop-blur-sm border-black border-b/10">
       <div className="mx-auto px-4 py-12 container">
         <div className="gap-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
