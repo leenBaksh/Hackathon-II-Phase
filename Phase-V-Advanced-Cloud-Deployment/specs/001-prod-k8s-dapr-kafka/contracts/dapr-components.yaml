@@ -1,0 +1,116 @@
+# Dapr Component Definitions
+
+This document outlines the Dapr component definitions required for the Production-Grade Kubernetes Deployment of the Todo application. These components abstract underlying infrastructure (Kafka, State Store, Cron Jobs, Secrets) and will be deployed as Kubernetes resources.
+
+---
+
+## 1. Pub/Sub Component (Kafka)
+
+This component enables services to publish and subscribe to messages via Kafka, abstracted by Dapr.
+
+**Component Name**: `task-pubsub`
+**Type**: `pubsub.kafka`
+
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: task-pubsub
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+  - name: brokers
+    value: "kafka-broker.kafka.svc.cluster.local:9092" # Placeholder: Update with actual Kafka broker address
+  - name: consumerGroup
+    value: "todo-app-group"
+  - name: authRequired
+    value: "false" # For local dev; use secrets for production auth
+  # - name: saslUsername # Example for SASL auth
+  #   secretKeyRef:
+  #     name: kafka-secrets
+  #     key: sasl-username
+  # - name: saslPassword # Example for SASL auth
+  #   secretKeyRef:
+  #     name: kafka-secrets
+  #     key: sasl-password
+  # - name: caCert # Example for TLS
+  #   secretKeyRef:
+  #     name: kafka-secrets
+  #     key: ca-cert
+  # - name: clientCert # Example for TLS
+  #   secretKeyRef:
+  #     name: kafka-secrets
+  #     key: client-cert
+  # - name: clientKey # Example for TLS
+  #   secretKeyRef:
+  #     name: kafka-secrets
+  #     key: client-key
+```
+
+## 2. State Store Component (PostgreSQL/Redis - Placeholder)
+
+This component provides a key/value state store for services. It could be used for conversation state or other transient data. For a production deployment, a persistent and scalable state store is required.
+
+**Component Name**: `todo-state-store`
+**Type**: `state.postgresql` (or `state.redis`) - *Placeholder, actual choice needs to be made*
+
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: todo-state-store
+spec:
+  type: state.postgresql # Placeholder: Could be state.redis, state.cosmosdb, etc.
+  version: v1
+  metadata:
+  - name: connectionString
+    secretKeyRef:
+      name: db-connection-secrets
+      key: connection-string
+  - name: tablePrefix
+    value: "daprstate"
+  - name: actorStateStore
+    value: "true" # Set to true if used for Dapr Actors
+```
+
+## 3. Binding Component (Cron for Recurring Tasks)
+
+This component allows external events to trigger service invocation. Here, a cron binding will trigger the recurring task service.
+
+**Component Name**: `daily-task-cron`
+**Type**: `bindings.cron`
+
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: daily-task-cron
+spec:
+  type: bindings.cron
+  version: v1
+  metadata:
+  - name: schedule
+    value: "@every 24h" # Example: Triggers every 24 hours. Configurable.
+```
+
+## 4. Secret Store Component (Kubernetes Secrets)
+
+This component provides secure access to secrets stored in Kubernetes.
+
+**Component Name**: `kubernetes-secret-store`
+**Type**: `secretstores.kubernetes`
+
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kubernetes-secret-store
+spec:
+  type: secretstores.kubernetes
+  version: v1
+  metadata: []
+```
+
+---
+**Note**: All `value` fields for connection strings, broker addresses, and authentication details are placeholders and MUST be replaced with actual secure configurations, potentially referencing Kubernetes Secrets. The `brokers` value for Kafka would point to the internal Kafka service in the Kubernetes cluster (e.g., `kafka-broker.kafka.svc.cluster.local:9092`).

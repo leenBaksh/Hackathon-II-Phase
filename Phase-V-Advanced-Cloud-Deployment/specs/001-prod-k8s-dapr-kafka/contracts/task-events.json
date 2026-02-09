@@ -1,0 +1,99 @@
+# Task Events Contract (Kafka Message Structure)
+
+This document defines the schema for events published to Kafka topics related to Task management.
+
+---
+
+## TaskEvent Schema
+
+This is a base schema for all task-related events. Specific event types will extend this schema with their own `data` payload.
+
+**Topic**: `task-events`, `reminders`, `task-updates` (as defined in `spec.md` FR-003)
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TaskEvent",
+  "description": "Base schema for a task-related event in the system.",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "source_service",
+    "timestamp",
+    "trace_id",
+    "task_id",
+    "user_id"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this specific event."
+    },
+    "event_type": {
+      "type": "string",
+      "description": "The type of event (e.g., 'TaskCreated', 'TaskUpdated', 'TaskDeleted', 'TaskCompleted', 'TaskReminderTriggered', 'TaskRecurrenceGenerated')."
+    },
+    "source_service": {
+      "type": "string",
+      "description": "The service that originated this event (e.g., 'task-service', 'recurring-task-service')."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the event occurred."
+    },
+    "trace_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Correlation ID for distributed tracing."
+    },
+    "task_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifier of the task associated with this event."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifier of the user who owns the task."
+    },
+    "data": {
+      "type": "object",
+      "description": "Payload specific to the event_type. This will contain the actual changes or relevant data for the event.",
+      "additionalProperties": true
+    }
+  },
+  "examples": [
+    {
+      "event_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      "event_type": "TaskCreated",
+      "source_service": "task-service",
+      "timestamp": "2026-02-09T12:00:00Z",
+      "trace_id": "f9e8d7c6-b5a4-3210-fedc-ba9876543210",
+      "task_id": "11223344-5566-7788-9900-aabbccddeeff",
+      "user_id": "deadbeef-cafe-feed-babe-c0ffee00c0ffee",
+      "data": {
+        "description": "Buy groceries",
+        "priority": "high",
+        "due_date": "2026-02-10T18:00:00Z"
+      }
+    },
+    {
+      "event_id": "b2c3d4e5-f6a7-8901-2345-67890abcdef0",
+      "event_type": "TaskUpdated",
+      "source_service": "task-service",
+      "timestamp": "2026-02-09T12:30:00Z",
+      "trace_id": "edcba987-6543-210f-edcb-a9876543210f",
+      "task_id": "11223344-5566-7788-9900-aabbccddeeff",
+      "user_id": "deadbeef-cafe-feed-babe-c0ffee00c0ffee",
+      "data": {
+        "field": "completion_status",
+        "old_value": "pending",
+        "new_value": "completed"
+      }
+    }
+  ]
+}
+```
