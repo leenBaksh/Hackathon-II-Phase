@@ -30,8 +30,6 @@ function Get-CurrentBranch {
     # Then check git if available
     try {
         $result = git rev-parse --abbrev-ref HEAD 2>$null
-        Write-Host "DEBUG: git rev-parse result: $result"
-        Write-Host "DEBUG: git rev-parse LASTEXITCODE: $LASTEXITCODE"
         if ($LASTEXITCODE -eq 0) {
             return $result
         }
