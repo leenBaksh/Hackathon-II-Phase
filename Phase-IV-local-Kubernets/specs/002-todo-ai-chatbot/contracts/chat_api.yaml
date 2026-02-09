@@ -1,0 +1,105 @@
+openapi: 3.0.0
+info:
+  title: Todo AI Chatbot API
+  version: 1.0.0
+  description: API for interacting with the AI-powered todo chatbot.
+
+paths:
+  /api/{user_id}/chat:
+    post:
+      summary: Send a message to the AI chatbot
+      description: Sends a user message to the AI chatbot and receives an AI response.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the authenticated user.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  description: The user's message to the chatbot.
+                  example: "Add 'Buy groceries' to my todo list."
+                conversation_id:
+                  type: string
+                  format: uuid
+                  description: Optional. The ID of the ongoing conversation. If not provided, a new conversation will be initiated.
+                  example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+      responses:
+        '200':
+          description: Successful AI response.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - conversation_id
+                properties:
+                  message:
+                    type: string
+                    description: The AI's response message.
+                    example: "Successfully added 'Buy groceries' to your todo list."
+                  conversation_id:
+                    type: string
+                    format: uuid
+                    description: The ID of the conversation (newly created or existing).
+                    example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+                  tool_calls:
+                    type: array
+                    description: Optional. Details of any tools invoked by the AI.
+                    items:
+                      type: object
+                      properties:
+                        tool_name:
+                          type: string
+                          description: The name of the tool called.
+                          example: "add_task"
+                        parameters:
+                          type: object
+                          description: The parameters passed to the tool.
+                          example:
+                            title: "Buy groceries"
+                            user_id: "user123"
+        '400':
+          description: Invalid request or malformed input.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "Invalid message format."
+        '401':
+          description: Unauthorized. User authentication failed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "Authentication required."
+        '500':
+          description: Internal server error or AI processing failure.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "An unexpected error occurred during AI processing."
+tags:
+  - Chat
